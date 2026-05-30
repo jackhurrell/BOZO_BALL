@@ -54,6 +54,8 @@ DEFAULT_SETTINGS = {
     # True  = mode 2 (surprise): name screen shows just "<name>", then text
     # animation + clown image flash before the ball reveal.
     "bozo_surprise_mode": False,
+    # Play the cinematic break intro on startup before the splash screen.
+    "intro_enabled": True,
 }
 
 BOZO_FLASH_VISUAL_MS = 300  # mode 1: how long the clown image flashes on screen

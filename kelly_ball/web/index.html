@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BOZO Ball</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <!-- Resolve bare "three" imports to the vendored copy so the app stays
+       fully offline / standalone. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/addons/",
+      "cannon-es": "./vendor/cannon-es.js"
+    }
+  }
+  </script>
+  <script>
+    // Capture early errors so a headless probe (and devs) can see why the
+    // module graph failed to boot, instead of a silent blank window.
+    window.__ERR = null;
+    window.addEventListener('error', (e) => {
+      window.__ERR = (e.message || String(e.error)) +
+        (e.filename ? ` @ ${e.filename}:${e.lineno}` : '');
+    });
+    window.addEventListener('unhandledrejection', (e) => {
+      window.__ERR = 'unhandledrejection: ' + (e.reason && (e.reason.stack || e.reason.message || e.reason));
+    });
+  </script>
+</head>
+<body>
+  <!-- 3D scene lives behind everything. -->
+  <canvas id="scene"></canvas>
+
+  <!-- HTML overlay UI (text-heavy screens float over the 3D room). -->
+  <div id="ui">
+
+    <!-- SPLASH -->
+    <section id="screen-splash" class="screen" hidden>
+      <div class="center-stack">
+        <h1 class="brand">BOZO&nbsp;BALL</h1>
+        <p class="subtitle pulse">click anywhere to start</p>
+      </div>
+    </section>
+
+    <!-- SETUP -->
+    <section id="screen-setup" class="screen" hidden>
+      <header class="row between">
+        <div>
+          <h2>Who's playing tonight?</h2>
+          <p class="muted">Type a name and press Enter. Or tap a recent…</p>
+        </div>
+        <div class="row gap">
+          <button class="text-btn" data-action="stats">📊 Stats</button>
+          <button class="text-btn" data-action="settings">⚙ Settings</button>
+        </div>
+      </header>
+
+      <label class="check">
+        <input type="checkbox" id="tournament-toggle" />
+        🏆 Tournament mode (last player standing wins)
+      </label>
+
+      <div id="chip-tray" class="tray">
+        <div id="chips" class="chips"></div>
+        <input id="name-input" class="name-input" type="text"
+               placeholder="Type a name…" autocomplete="off" />
+      </div>
+
+      <div class="row between section-head">
+        <span class="label">RECENTLY PLAYED — TAP TO ADD</span>
+        <div class="row gap">
+          <span class="dim small">right-click to forget</span>
+          <button class="text-btn" data-action="clear-recents">🗑 Clear recents</button>
+        </div>
+      </div>
+      <div id="recents" class="recents"></div>
+
+      <footer class="row between foot">
+        <span id="count" class="muted"></span>
+        <div class="row gap">
+          <span id="status" class="dim small"></span>
+          <button id="start-btn" class="primary" data-action="start" disabled>
+            Start Draw →
+          </button>
+        </div>
+      </footer>
+    </section>
+
+    <!-- REVEAL -->
+    <section id="screen-reveal" class="screen" hidden>
+      <header class="row between">
+        <button class="text-btn" data-action="cancel">✕ Cancel</button>
+        <span id="reveal-progress" class="muted"></span>
+      </header>
+      <div class="center-stack grow">
+        <p id="reveal-kicker" class="kicker"></p>
+        <h1 id="reveal-name" class="big-name"></h1>
+        <div id="reveal-ball-slot"></div>
+        <p id="reveal-hint" class="muted"></p>
+      </div>
+      <footer class="row end foot">
+        <button id="next-btn" class="primary" data-action="next">Next →</button>
+      </footer>
+    </section>
+
+    <!-- SUMMARY -->
+    <section id="screen-summary" class="screen" hidden>
+      <header class="row between">
+        <div>
+          <h2 id="summary-title">All balls drawn</h2>
+          <p id="summary-sub" class="muted"></p>
+        </div>
+        <button class="text-btn" data-action="settings-return">⚙ Settings</button>
+      </header>
+      <div id="summary-list" class="summary-list"></div>
+      <div id="late-join" class="row gap late" hidden>
+        <span class="muted">Late join?</span>
+        <input id="late-input" class="name-input" type="text"
+               placeholder="Name…" autocomplete="off" />
+        <button class="primary small" data-action="late-add">+ Add</button>
+        <span class="dim small">gets a random unused ball</span>
+      </div>
+      <footer class="row end foot" id="summary-foot"></footer>
+    </section>
+
+    <!-- STATS -->
+    <section id="screen-stats" class="screen" hidden>
+      <header class="row gap">
+        <button class="text-btn" data-action="back-setup">← Back</button>
+        <h2>📊 Stats</h2>
+      </header>
+      <div id="stats-agg" class="stats-agg"></div>
+      <div id="stats-boards" class="row gap"></div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="screen-settings" class="screen" hidden>
+      <header class="row gap">
+        <button class="text-btn" data-action="settings-back">← Back</button>
+        <h2>⚙ Settings</h2>
+      </header>
+      <div class="settings-body">
+        <h3>BOZO mode</h3>
+        <label class="radio"><input type="radio" name="bozo" value="off" /> Off — no BOZO swap and no flash</label>
+        <label class="radio"><input type="radio" name="bozo" value="classic" /> Classic — show "BOZO &lt;name&gt;" on the name screen</label>
+        <label class="radio"><input type="radio" name="bozo" value="surprise" /> Surprise — hide BOZO until ball reveal</label>
+
+        <label class="check spaced">
+          <input type="checkbox" id="music-toggle" /> Play looping background music
+        </label>
+
+        <label class="check spaced">
+          <input type="checkbox" id="intro-toggle" /> Play the cinematic break intro on startup
+        </label>
+
+        <h3>Whitelist (one name per line — these stay un-bozo'd)</h3>
+        <textarea id="whitelist" rows="8"></textarea>
+      </div>
+      <footer class="row end foot">
+        <button class="text-btn" data-action="settings-reset">Reset to defaults</button>
+        <button class="primary" data-action="settings-save">Save</button>
+      </footer>
+    </section>
+
+    <!-- CHAMPION -->
+    <section id="screen-champion" class="screen" hidden>
+      <div class="center-stack">
+        <div class="trophy">🏆</div>
+        <p class="kicker">CHAMPION</p>
+        <h1 id="champion-name" class="big-name"></h1>
+        <button class="primary" data-action="back-setup">New Tournament</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

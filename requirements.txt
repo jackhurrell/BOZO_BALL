@@ -1,0 +1,10 @@
+# Runtime
+pywebview>=5.0        # native webview window (WKWebView / WebView2 / GTK-WebKit)
+
+# macOS backend deps are pulled in automatically by pywebview (pyobjc).
+# Linux needs one of:  pip install "pywebview[qt]"  or  "pywebview[gtk]"
+# Windows needs the Microsoft Edge WebView2 runtime (preinstalled on Win10/11).
+
+# Build / dev (not required to run from source)
+pyinstaller>=6.0
+pytest>=8.3

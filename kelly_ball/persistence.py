@@ -25,6 +25,7 @@ def load_settings(path: Path) -> dict:
         "whitelist": list(DEFAULT_SETTINGS["whitelist"]),
         "background_music_enabled": DEFAULT_SETTINGS["background_music_enabled"],
         "bozo_surprise_mode": DEFAULT_SETTINGS["bozo_surprise_mode"],
+        "intro_enabled": DEFAULT_SETTINGS["intro_enabled"],
     }
     try:
         if not path.exists():
@@ -41,6 +42,8 @@ def load_settings(path: Path) -> dict:
         base["background_music_enabled"] = raw["background_music_enabled"]
     if isinstance(raw.get("bozo_surprise_mode"), bool):
         base["bozo_surprise_mode"] = raw["bozo_surprise_mode"]
+    if isinstance(raw.get("intro_enabled"), bool):
+        base["intro_enabled"] = raw["intro_enabled"]
     wl = raw.get("whitelist")
     if isinstance(wl, list):
         base["whitelist"] = [s for s in wl if isinstance(s, str) and s.strip()]

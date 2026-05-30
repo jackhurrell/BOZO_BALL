@@ -1,0 +1,265 @@
+:root {
+  --bg: #0f1115;
+  --fg: #f5f7fa;
+  --accent: #22c55e;
+  --muted: #9aa3af;
+  --panel: #1a1d24;
+  --line: #2a2f3a;
+  --dim: #5a6370;
+  --danger: #e5484d;
+  --bozo: #fbbf24;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  user-select: none;
+}
+
+/* 3D canvas sits behind the UI overlay. */
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+#ui {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;          /* let clicks fall through to empty space */
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 36px;
+  gap: 14px;
+  pointer-events: none;          /* empty space falls through to the 3D scene */
+  animation: fade 0.35s ease;
+  overflow: hidden;
+}
+/* CRITICAL: a class selector's `display:flex` outranks the UA `[hidden]`
+   rule, so without this every screen renders at once (all stacked). This
+   restores hidden-means-hidden so only the active screen is visible. */
+.screen[hidden] { display: none !important; }
+/* Only actual controls capture input, so the canvas still gets orbit drags. */
+.screen button,
+.screen input,
+.screen textarea,
+.screen label,
+.screen .tray,
+.screen .recent,
+.screen .chip,
+.screen .chip .x { pointer-events: auto; }
+
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+
+h1, h2, h3 { margin: 0; }
+h2 { font-size: 26px; }
+p { margin: 0; }
+
+.muted { color: var(--muted); }
+.dim { color: var(--dim); }
+.small { font-size: 12px; }
+.label { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+
+.row { display: flex; align-items: center; }
+.row.between { justify-content: space-between; }
+.row.end { justify-content: flex-end; }
+.row.gap { gap: 10px; }
+.grow { flex: 1; }
+.center-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+.foot { margin-top: auto; }
+.section-head { margin-top: 6px; }
+
+/* Buttons */
+button { font-family: inherit; cursor: pointer; border: none; }
+.primary {
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 700;
+  font-size: 15px;
+  border-radius: 10px;
+  padding: 11px 20px;
+  transition: filter .15s ease, transform .05s ease;
+}
+.primary:hover { filter: brightness(1.08); }
+.primary:active { transform: translateY(1px); }
+.primary:disabled { opacity: .4; cursor: default; }
+.primary.small { padding: 7px 12px; font-size: 13px; }
+
+.text-btn {
+  background: var(--panel);
+  color: var(--fg);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  transition: background .15s ease;
+}
+.text-btn:hover { background: var(--line); }
+
+/* Setup */
+.check { display: flex; align-items: center; gap: 8px; color: var(--fg); font-size: 13px; }
+.check.spaced { margin: 14px 0; }
+.radio { display: block; padding: 4px 0; font-size: 14px; cursor: pointer; }
+
+.tray {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 52px;
+  align-items: center;
+  transition: border-color .15s ease;
+}
+.tray:focus-within { border-color: var(--accent); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 5px 6px 5px 11px;
+  border-radius: 8px;
+  animation: pop .18s ease;
+}
+.chip .x { cursor: pointer; padding: 0 4px; opacity: .8; }
+.chip .x:hover { opacity: 1; }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.name-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--fg);
+  font-size: 14px;
+  flex: 1;
+  min-width: 140px;
+  padding: 6px 4px;
+}
+
+.recents { display: flex; flex-wrap: wrap; gap: 6px; overflow-y: auto; max-height: 30vh; }
+.recent {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  padding: 7px 12px;
+  font-size: 13px;
+}
+.recent:hover { background: var(--panel); }
+.recent.in-game { color: var(--dim); text-decoration: line-through; cursor: default; }
+
+/* Reveal */
+.kicker { font-size: 18px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+.big-name { font-size: 52px; font-weight: 800; line-height: 1.05; }
+#reveal-ball-slot { min-height: 220px; display: flex; align-items: center; justify-content: center; }
+
+/* Fallback 2D ball (used if the WebGL scene is unavailable) */
+.ball2d {
+  width: 180px; height: 180px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 64px; font-weight: 800; color: #111;
+  box-shadow: inset -18px -18px 40px rgba(0,0,0,.45), 0 18px 40px rgba(0,0,0,.5);
+  position: relative;
+}
+.ball2d .disc {
+  position: absolute; width: 84px; height: 84px; border-radius: 50%;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+}
+
+/* Summary */
+.summary-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
+.summary-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--panel); border-radius: 10px; padding: 12px 16px;
+}
+.summary-row .pname { flex: 1; font-size: 16px; font-weight: 700; }
+.summary-row.winner .pname { color: var(--bozo); }
+.summary-row .ball-readout { min-width: 48px; text-align: center; font-weight: 800; color: var(--muted); }
+.win-btn { background: var(--panel); border-radius: 8px; padding: 6px 10px; font-size: 16px; }
+.win-btn.on { background: var(--bozo); }
+.late { margin-top: 8px; }
+
+/* Stats */
+.stats-agg { display: flex; gap: 8px; margin: 12px 0; }
+.stat-cell { flex: 1; background: var(--panel); border-radius: 10px; padding: 12px; }
+.stat-cell .v { font-size: 22px; font-weight: 800; }
+.stat-cell .k { font-size: 10px; color: var(--muted); }
+.board { flex: 1; }
+.board h4 { color: var(--muted); font-size: 11px; margin: 0 0 6px; }
+.board .brow { display: flex; justify-content: space-between; background: var(--panel); border-radius: 8px; padding: 8px 12px; margin-bottom: 4px; }
+.board .brow .bv { color: var(--accent); font-weight: 700; }
+
+/* Settings */
+.settings-body { flex: 1; overflow-y: auto; }
+.settings-body h3 { margin: 16px 0 6px; }
+#whitelist {
+  width: 100%; background: var(--panel); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+  font-family: inherit; font-size: 14px; resize: vertical;
+}
+
+/* Champion */
+.trophy { font-size: 96px; }
+
+/* Splash */
+.brand {
+  font-size: 72px; font-weight: 900; letter-spacing: .02em;
+  /* Legible over the lit 3D room in the 2D fallback (no WebGL). */
+  text-shadow: 0 2px 12px rgba(0,0,0,.85), 0 0 30px rgba(0,0,0,.6);
+}
+/* When the 3D scene loads, the glowing neon title replaces the HTML brand. */
+body.has-scene .brand { display: none; }
+.subtitle {
+  font-size: 16px; font-style: italic; color: var(--fg);
+  text-shadow: 0 2px 10px rgba(0,0,0,.9), 0 0 18px rgba(0,0,0,.7);
+}
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+
+/* Toast */
+.toast {
+  position: fixed; left: 50%; bottom: 36px; transform: translateX(-50%);
+  background: var(--panel); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 20px; font-size: 14px; z-index: 10;
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  animation: fade .2s ease;
+}
+
+/* BOZO flash overlay */
+#bozo-flash {
+  position: fixed; inset: 0; z-index: 20;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(15,17,21,.92); gap: 10px;
+}
+#bozo-flash .clown { font-size: 180px; animation: pop .25s ease; }
+#bozo-flash .word { font-size: 96px; font-weight: 900; color: var(--bozo); }

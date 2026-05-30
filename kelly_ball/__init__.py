@@ -1,17 +1,12 @@
-"""BOZO Ball — Kelly pool order-of-play GUI.
+"""BOZO Ball — Kelly pool order-of-play app (3D / pywebview front-end).
 
-The public surface preserved for tests (`test_kelly_ball.py`) and the
-PyInstaller build is re-exported here so callers can keep using
-``import kelly_ball`` / ``from kelly_ball import KellyBallApp``.
-
-``_resource_dir``, ``EXTERNAL_RESOURCE_DIR``, and ``find_intro_image`` are
-defined directly in this module (not just re-exported from ``resources``)
-so the tests can monkeypatch them on the ``kelly_ball`` namespace and have
-the patched values take effect when ``find_intro_image`` is called.
+Game rules live in :class:`kelly_ball.core.GameController`; the JavaScript
+front-end talks to them through :class:`kelly_ball.api.Api`. The pure helpers
+(`display_name`, persistence, theme constants) are re-exported here for
+convenience and for the test-suite.
 """
 import sys
 from pathlib import Path
-from tkinter import messagebox  # re-exported for tests that patch it
 
 from .display import _BOZO_M_WHITELIST, _interp_color, display_name
 from .persistence import (
@@ -51,11 +46,7 @@ def _resource_dir() -> Path:
 
 
 def find_intro_image() -> Path | None:
-    """Search bundled resources, then the user's BOZO_RESOURCES folder.
-
-    Looks up ``_resource_dir`` and ``EXTERNAL_RESOURCE_DIR`` through the
-    module globals at call time so monkeypatch can swap them out in tests.
-    """
+    """Search bundled resources, then the user's BOZO_RESOURCES folder."""
     for base in (_resource_dir(), EXTERNAL_RESOURCE_DIR):
         for name in INTRO_FILENAMES:
             p = base / name
@@ -64,12 +55,13 @@ def find_intro_image() -> Path | None:
     return None
 
 
-# Imported last because `.app` (via screens) pulls in `kelly_ball` lazily
-# through late imports for resource lookup helpers defined above.
-from .app import KellyBallApp  # noqa: E402
+# Imported after the helpers so the bridge/controller can rely on them.
+from .api import Api  # noqa: E402
+from .core import GameController  # noqa: E402
 
 __all__ = [
     "ACCENT",
+    "Api",
     "BALL_COLORS",
     "BG",
     "BOZO_TEXT_DARK",
@@ -81,7 +73,8 @@ __all__ = [
     "DIM",
     "EXTERNAL_RESOURCE_DIR",
     "FG",
-    "KellyBallApp",
+    "GameController",
+    "INTRO_FILENAMES",
     "LINE",
     "MAX_PLAYERS",
     "MUTED",
@@ -95,7 +88,6 @@ __all__ = [
     "find_intro_image",
     "load_roster",
     "load_settings",
-    "messagebox",
     "save_roster",
     "save_settings",
 ]
